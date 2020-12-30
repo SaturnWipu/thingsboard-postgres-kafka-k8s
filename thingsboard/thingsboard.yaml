@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim
+  namespace: thingsboard
+  labels:
+    app: thingsboard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: log-pv-claim
+  namespace: thingsboard
+  labels:
+    app: thingsboard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thingsboard-3.2
+  namespace: thingsboard
+  labels:
+    app: thingsboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thingsboard-monolith
+  template:
+    metadata:
+      labels:
+        app: thingsboard-monolith
+    spec:
+      containers:
+      - name: thingsboard-monolith
+        image: thingsboard/tb-postgres:3.2.0
+        ports:
+          - name: webui
+            containerPort: 8080
+          - name: mqtt
+            containerPort: 1883
+          - name: coap
+            containerPort: 5683
+            protocol: UDP
+        env:
+          - name: TB_QUEUE_TYPE
+            value: kafka
+          - name: TB_KAFKA_SERVERS
+            value: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+          - name: MQTT_SSL_ENABLED
+            value: "true"
+          - name: MQTT_SSL_KEY_STORE_PASSWORD
+            value: 1q2w3e4r
+          - name: MQTT_SSL_KEY_PASSWORD
+            value: 1q2w3e4r
+        volumeMounts:
+          - name: tb-data
+            mountPath: /data
+          - name: tb-log
+            mountPath: /var/log/thingsboard
+          - name: tls-files
+            mountPath: /etc/thingsboard/conf/mqttserver.jks
+            subPath: mqttserver.jks
+            readOnly: true
+      volumes:
+        - name: tb-data
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+        - name: tb-log
+          persistentVolumeClaim:
+            claimName: log-pv-claim
+        - name: tls-files
+          configMap:
+            name: tls-ssl
+            items:
+              - key: tlsmqtt.jks
+                path: mqttserver.jks
+                mode: 400
+
