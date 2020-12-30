@@ -75,7 +75,8 @@ spec:
           - name: tls-files
             mountPath: /etc/thingsboard/conf/mqttserver.jks
             subPath: mqttserver.jks
-            readOnly: true
+      securityContext:
+        fsGroup: 799
       volumes:
         - name: tb-data
           persistentVolumeClaim:
