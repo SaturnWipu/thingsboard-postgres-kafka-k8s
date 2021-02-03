@@ -56,13 +56,15 @@ spec:
           - name: coap
             containerPort: 5683
             protocol: UDP
+          - name: postgres
+            containerPort: 5432
         env:
           - name: TB_QUEUE_TYPE
             value: kafka
           - name: TB_KAFKA_SERVERS
             value: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
           - name: MQTT_SSL_ENABLED
-            value: "true"
+            value: "false"
           - name: MQTT_SSL_KEY_STORE_PASSWORD
             value: 1q2w3e4r
           - name: MQTT_SSL_KEY_PASSWORD

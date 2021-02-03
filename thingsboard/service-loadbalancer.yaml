@@ -15,4 +15,8 @@ spec:
       targetPort: 1883
       protocol: TCP
       name: mqtt
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
   type: LoadBalancer
